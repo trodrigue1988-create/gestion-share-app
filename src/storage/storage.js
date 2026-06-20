@@ -4,6 +4,12 @@ const KEY = 'gestion_share_v1';
 
 const CANAUX_DEFAUT = ['Western Union', 'Mobile Money', 'Virement bancaire', 'Autre'];
 
+const CAT_DEP_DEFAUT = [
+  { key: 'perso', label: 'Perso', icon: 'person-outline', color: '#3b82f6' },
+  { key: 'chargesFixes', label: 'Charg Fix', icon: 'home-outline', color: '#f59e0b' },
+  { key: 'autres', label: 'Autres', icon: 'ellipsis-horizontal-circle-outline', color: '#9b59b6' },
+];
+
 const defaultState = {
   cam: [],
   envois: [],
@@ -15,6 +21,8 @@ const defaultState = {
   devise: 'FCFA',
   destinatairesFrequents: [],
   canauxFrequents: CANAUX_DEFAUT,
+  categoriesDepenses: CAT_DEP_DEFAUT,
+  budgetsParCategorie: {},
 };
 
 export async function loadState() {
@@ -36,6 +44,10 @@ export async function loadState() {
     merged.canauxFrequents = merged.canauxFrequents && merged.canauxFrequents.length > 0
       ? merged.canauxFrequents
       : CANAUX_DEFAUT;
+    merged.categoriesDepenses = merged.categoriesDepenses && merged.categoriesDepenses.length > 0
+      ? merged.categoriesDepenses
+      : CAT_DEP_DEFAUT;
+    merged.budgetsParCategorie = merged.budgetsParCategorie || {};
     return merged;
   } catch (e) {
     return defaultState;

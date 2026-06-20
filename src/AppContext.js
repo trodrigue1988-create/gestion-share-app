@@ -3,11 +3,19 @@ import { loadState, saveState } from './storage/storage';
 
 export const AppContext = createContext();
 
+const CAT_DEP_DEFAUT = [
+  { key: 'perso', label: 'Perso', icon: 'person-outline', color: '#3b82f6' },
+  { key: 'chargesFixes', label: 'Charg Fix', icon: 'home-outline', color: '#f59e0b' },
+  { key: 'autres', label: 'Autres', icon: 'ellipsis-horizontal-circle-outline', color: '#9b59b6' },
+];
+
 const defaultState = {
   cam: [], envois: [], dep: [], fuel: [], creances: [],
   prixLitre: 0, budgetMensuel: 0, devise: 'FCFA',
   destinatairesFrequents: [],
   canauxFrequents: ['Western Union', 'Mobile Money', 'Virement bancaire', 'Autre'],
+  categoriesDepenses: CAT_DEP_DEFAUT,
+  budgetsParCategorie: {},
 };
 
 function reducer(state, action) {
@@ -57,6 +65,22 @@ function reducer(state, action) {
     case 'DEL_CANAL': return {
       ...state,
       canauxFrequents: state.canauxFrequents.filter(n => n !== action.nom)
+    };
+    case 'ADD_CATEGORIE': return {
+      ...state,
+      categoriesDepenses: [...state.categoriesDepenses, action.cat],
+    };
+    case 'EDIT_CATEGORIE': return {
+      ...state,
+      categoriesDepenses: state.categoriesDepenses.map(c => c.key === action.key ? { ...c, ...action.changes } : c),
+    };
+    case 'DEL_CATEGORIE': return {
+      ...state,
+      categoriesDepenses: state.categoriesDepenses.filter(c => c.key !== action.key),
+    };
+    case 'SET_BUDGET_CATEGORIE': return {
+      ...state,
+      budgetsParCategorie: { ...state.budgetsParCategorie, [action.catKey]: action.montant },
     };
     default: return state;
   }

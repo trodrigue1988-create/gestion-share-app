@@ -9,9 +9,7 @@ import { clearPin } from '../auth/authStorage';
 import { COLORS, fmtMontant, fmtLitres, calcSolde, calcLitrePer100, calcCreanceRestant, isCreanceSolde, fmtDate } from '../storage/utils';
 import XLSX from 'xlsx';
 
-const CAT_LABELS = {
-  dep: { perso: 'Perso', chargesFixes: 'Charg Fix', autres: 'Autres' },
-};
+// CAT_LABELS construit dynamiquement depuis state.categoriesDepenses dans les fonctions d'export
 
 function ModCard({ name, icon, color, solde, stats, onExport, devise }) {
   return (
@@ -91,11 +89,13 @@ export default function GlobalScreen() {
         let cum = 0;
         const cumMap = {};
         [...state[mod]].forEach(tx => { cum += tx.plus ? tx.amount : -tx.amount; cumMap[tx.ts] = cum; });
-        const catLabel = CAT_LABELS[mod];
+        const catMap = mod === 'dep'
+          ? Object.fromEntries((state.categoriesDepenses || []).map(c => [c.key, c.label]))
+          : null;
         rows = state[mod].length
           ? [...state[mod]].reverse().map(tx => ({
               Date: fmtDate(tx.ts), Type: tx.plus ? 'Entrée' : 'Sortie',
-              ...(catLabel ? { Catégorie: catLabel[tx.cat] || tx.cat || '' } : {}),
+              ...(catMap ? { Catégorie: catMap[tx.cat] || tx.cat || '' } : {}),
               Opération: tx.label, 'Montant (FCFA)': tx.amount, 'Solde cumulé': cumMap[tx.ts] || 0
             }))
           : [{ Date: '', Type: '', Opération: 'Aucune donnée', 'Montant (FCFA)': '', 'Solde cumulé': '' }];
@@ -151,11 +151,13 @@ export default function GlobalScreen() {
               }))
             : [{ Date: '', Destinataire: 'Aucune donnée', Canal: '', 'Montant envoyé': '', Frais: '', 'Motif / Remarque': '' }];
         } else {
-          const catLabel = CAT_LABELS[mod];
+          const catMap = mod === 'dep'
+            ? Object.fromEntries((state.categoriesDepenses || []).map(c => [c.key, c.label]))
+            : null;
           rows = state[mod].length
             ? [...state[mod]].reverse().map(tx => ({
                 Date: fmtDate(tx.ts), Type: tx.plus ? 'Entrée' : 'Sortie',
-                ...(catLabel ? { Catégorie: catLabel[tx.cat] || tx.cat || '' } : {}),
+                ...(catMap ? { Catégorie: catMap[tx.cat] || tx.cat || '' } : {}),
                 Opération: tx.label, Montant: tx.amount
               }))
             : [{ Date: '', Type: '', Opération: 'Aucune donnée', Montant: '' }];
@@ -196,11 +198,10 @@ export default function GlobalScreen() {
       <ModCard
         name="Dépenses" icon="receipt-outline" color={COLORS.success}
         solde={calcSolde(state.dep)} devise={devise}
-        stats={[
-          { label: 'Perso', val: fmtMontant(calcSolde(state.dep.filter(t => (t.cat || 'perso') === 'perso')), devise) },
-          { label: 'Charg Fix', val: fmtMontant(calcSolde(state.dep.filter(t => t.cat === 'chargesFixes')), devise) },
-          { label: 'Autres', val: fmtMontant(calcSolde(state.dep.filter(t => t.cat === 'autres')), devise) },
-        ]}
+        stats={(state.categoriesDepenses || []).slice(0, 3).map(c => ({
+          label: c.label,
+          val: fmtMontant(calcSolde(state.dep.filter(t => (t.cat || 'perso') === c.key)), devise),
+        }))}
         onExport={() => exportMod('dep')}
       />
       <ModCard
