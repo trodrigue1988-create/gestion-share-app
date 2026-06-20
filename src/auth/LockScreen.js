@@ -17,6 +17,7 @@ export default function LockScreen({ onUnlock }) {
   const [firstPin, setFirstPin] = useState('');
   const [error, setError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -38,13 +39,18 @@ export default function LockScreen({ onUnlock }) {
   }, [mode, biometricAvailable]);
 
   async function tryBiometric() {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
     try {
       const res = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Déverrouiller GerèTout',
         cancelLabel: 'Annuler',
       });
       if (res.success) onUnlock();
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      setIsAuthenticating(false);
+    }
   }
 
   useEffect(() => {
@@ -165,7 +171,11 @@ export default function LockScreen({ onUnlock }) {
 
       {/* Biométrie */}
       {mode === 'unlock' && biometricAvailable && (
-        <TouchableOpacity style={s.bioBtn} onPress={tryBiometric}>
+        <TouchableOpacity
+          style={[s.bioBtn, isAuthenticating && { opacity: 0.4 }]}
+          onPress={tryBiometric}
+          disabled={isAuthenticating}
+        >
           <View style={s.bioBtnInner}>
             <Ionicons name="finger-print-outline" size={20} color={COLORS.primary} />
             <Text style={s.bioTxt}>Empreinte / Face ID</Text>
