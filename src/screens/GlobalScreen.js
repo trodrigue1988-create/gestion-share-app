@@ -226,7 +226,7 @@ export default function GlobalScreen() {
         <Text style={s.securityTxt}>Changer le code PIN</Text>
       </TouchableOpacity>
 
-      <Text style={s.credit}>by Rodrigue Boungang</Text>
+      <Text style={s.credit}>GerèTout</Text>
     </ScrollView>
   );
 }
