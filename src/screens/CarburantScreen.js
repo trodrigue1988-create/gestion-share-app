@@ -318,7 +318,7 @@ export default function CarburantScreen() {
   function handleSaveBudget(montant, remarque) {
     dispatch({
       type: 'ADD_FUEL',
-      tx: { label: remarque ? `Budget — ${remarque}` : 'Budget carburant', amount: montant, litres: 0, isBudget: true, ts: Date.now(), vehiculeId: vehiculeActifId },
+      tx: { label: remarque ? `Approvisionnement — ${remarque}` : 'Approvisionnement carburant', amount: montant, litres: 0, isBudget: true, ts: Date.now(), vehiculeId: vehiculeActifId },
     });
     setBudgetModal(false);
   }
@@ -433,7 +433,7 @@ export default function CarburantScreen() {
         )}
 
         <SoldeCard
-          label="Budget carburant restant"
+          label="Solde carburant disponible"
           solde={solde}
           leftLabel="Dépensé" leftVal={'-' + fmtMontant(totalSpent, devise)} leftColor={COLORS.danger}
           rightLabel="Litres" rightVal={fmtLitres(totalLitres)} rightColor={COLORS.warning}
@@ -488,7 +488,7 @@ export default function CarburantScreen() {
         <View style={s.actions}>
           <TouchableOpacity style={[s.btn, { borderColor: COLORS.success }]} onPress={() => setBudgetModal(true)}>
             <Ionicons name="wallet-outline" size={22} color={COLORS.success} />
-            <Text style={[s.btnText, { color: COLORS.success }]}>Ajouter budget</Text>
+            <Text style={[s.btnText, { color: COLORS.success }]}>Approvisionner</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.btn, { borderColor: COLORS.warning }]} onPress={openFuelModal}>
             <Ionicons name="car-outline" size={22} color={COLORS.warning} />
@@ -500,7 +500,7 @@ export default function CarburantScreen() {
         <TxList data={filtered} onDelete={handleDelete} isFuel />
       </ScrollView>
 
-      <OpModal visible={budgetModal} title="Budget carburant" onClose={() => setBudgetModal(false)} onSave={handleSaveBudget} />
+      <OpModal visible={budgetModal} title="Approvisionnement carburant" onClose={() => setBudgetModal(false)} onSave={handleSaveBudget} />
 
       {/* Modal Plein */}
       <Modal visible={fuelModal} transparent animationType="slide" onRequestClose={() => setFuelModal(false)}>
