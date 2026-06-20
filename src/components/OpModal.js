@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback
+  StyleSheet, TouchableWithoutFeedback, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, fmtMontant } from '../storage/utils';
+import useKeyboardHeight from '../hooks/useKeyboardHeight';
 
 export default function OpModal({ visible, title, onClose, onSave, prixLitre, isFuel }) {
   const [montant, setMontant] = useState('');
   const [remarque, setRemarque] = useState('');
+  const keyboardHeight = useKeyboardHeight();
 
   useEffect(() => {
     if (visible) { setMontant(''); setRemarque(''); }
@@ -33,10 +35,9 @@ export default function OpModal({ visible, title, onClose, onSave, prixLitre, is
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={s.overlay}>
           <TouchableWithoutFeedback>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-              <View style={s.sheet}>
-                <View style={s.handle} />
-
+            <View style={[s.sheet, { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 12 : 28 }]}>
+              <View style={s.handle} />
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <View style={s.header}>
                   <View style={[s.iconWrap, { backgroundColor: iconColor + '18' }]}>
                     <Ionicons name={iconName} size={22} color={iconColor} />
@@ -85,8 +86,8 @@ export default function OpModal({ visible, title, onClose, onSave, prixLitre, is
                     <Text style={s.btnConfirmText}>Enregistrer</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+              </ScrollView>
+            </View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -96,7 +97,7 @@ export default function OpModal({ visible, title, onClose, onSave, prixLitre, is
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingTop: 12, paddingBottom: 28 },
+  sheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingTop: 12 },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: 'center', marginBottom: 20 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
   iconWrap: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },

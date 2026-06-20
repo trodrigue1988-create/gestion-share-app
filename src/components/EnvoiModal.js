@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Modal, View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, ScrollView,
+  StyleSheet, TouchableWithoutFeedback, ScrollView,
 } from 'react-native';
+import useKeyboardHeight from '../hooks/useKeyboardHeight';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, fmtMontant } from '../storage/utils';
 import { AppContext } from '../AppContext';
@@ -88,6 +89,7 @@ export default function EnvoiModal({ visible, onClose, onSave }) {
     });
   }
 
+  const keyboardHeight = useKeyboardHeight();
   const canSave = parseFloat(montant) > 0 && destinataire.length > 0;
 
   return (
@@ -95,8 +97,7 @@ export default function EnvoiModal({ visible, onClose, onSave }) {
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={s.overlay}>
           <TouchableWithoutFeedback>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-              <View style={s.sheet}>
+            <View style={[s.sheet, { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 12 : 28 }]}>
                 <View style={s.handle} />
 
                 <View style={s.header}>
@@ -170,7 +171,6 @@ export default function EnvoiModal({ visible, onClose, onSave }) {
                   </View>
                 </ScrollView>
               </View>
-            </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -180,7 +180,7 @@ export default function EnvoiModal({ visible, onClose, onSave }) {
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingTop: 12, paddingBottom: 28, maxHeight: '90%' },
+  sheet: { backgroundColor: COLORS.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingTop: 12, maxHeight: '90%' },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: 'center', marginBottom: 20 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   iconWrap: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },

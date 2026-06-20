@@ -1,8 +1,9 @@
 ﻿import React, { useState, useContext } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal,
-  TextInput, TouchableWithoutFeedback, Animated,
+  TextInput, TouchableWithoutFeedback,
 } from 'react-native';
+import useKeyboardHeight from '../hooks/useKeyboardHeight';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, fmtMontant } from '../storage/utils';
 import { AppContext } from '../AppContext';
@@ -35,6 +36,7 @@ export default function BudgetMensuelCard({ budgetMensuel, depenseCeMois, onSet 
   const [modal, setModal] = useState(false);
   const [input, setInput] = useState('');
   const { state } = useContext(AppContext);
+  const keyboardHeight = useKeyboardHeight();
   const devise = state.devise || 'FCFA';
 
   const mois = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -126,7 +128,7 @@ export default function BudgetMensuelCard({ budgetMensuel, depenseCeMois, onSet 
         <TouchableWithoutFeedback onPress={() => setModal(false)}>
           <View style={s.overlay}>
             <TouchableWithoutFeedback>
-              <View style={s.modal}>
+              <View style={[s.modal, { marginBottom: keyboardHeight > 0 ? keyboardHeight - 24 : 0 }]}>
                 <View style={s.modalHeader}>
                   <View style={[s.iconWrap, { backgroundColor: '#E8F5EE', width: 40, height: 40 }]}>
                     <Ionicons name="wallet-outline" size={20} color={COLORS.primary} />

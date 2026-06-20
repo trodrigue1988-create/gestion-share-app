@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback
+  StyleSheet, TouchableWithoutFeedback, ScrollView,
 } from 'react-native';
 import { COLORS } from '../storage/utils';
+import useKeyboardHeight from '../hooks/useKeyboardHeight';
 
 export default function CreanceModal({ visible, title, onClose, onSave }) {
   const [personne, setPersonne] = useState('');
   const [montant, setMontant] = useState('');
   const [remarque, setRemarque] = useState('');
   const [joursEcheance, setJoursEcheance] = useState('');
+  const keyboardHeight = useKeyboardHeight();
 
   useEffect(() => {
     if (visible) { setPersonne(''); setMontant(''); setRemarque(''); setJoursEcheance(''); }
@@ -28,8 +30,8 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={s.overlay}>
           <TouchableWithoutFeedback>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-              <View style={s.modal}>
+            <View style={[s.modal, { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 12 : 32 }]}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <Text style={s.title}>{title}</Text>
 
                 <Text style={s.label}>Personne</Text>
@@ -81,8 +83,8 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
                     <Text style={s.btnConfirmText}>Enregistrer</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </KeyboardAvoidingView>
+              </ScrollView>
+            </View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
@@ -92,7 +94,7 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: COLORS.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 32 },
+  modal: { backgroundColor: COLORS.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
   title: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 16 },
   label: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 },
   input: { backgroundColor: COLORS.bg, borderWidth: 0.5, borderColor: COLORS.border, borderRadius: 10, padding: 12, fontSize: 14, color: COLORS.textPrimary, marginBottom: 12 },

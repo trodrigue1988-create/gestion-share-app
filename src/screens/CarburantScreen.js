@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   Alert, Modal, TextInput, Image, ActivityIndicator,
-  KeyboardAvoidingView, Platform, TouchableWithoutFeedback,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,6 +15,7 @@ import TxList from '../components/TxList';
 import OpModal from '../components/OpModal';
 import BudgetMensuelCard from '../components/BudgetMensuelCard';
 import { COLORS, fmtMontant, fmtLitres, calcSolde } from '../storage/utils';
+import useKeyboardHeight from '../hooks/useKeyboardHeight';
 
 const MI_TO_KM = 1.60934;
 
@@ -181,6 +182,7 @@ const ec = StyleSheet.create({
 export default function CarburantScreen() {
   const { state, dispatch } = useContext(AppContext);
   const { suspendreVerrouillage } = useContext(AuthContext);
+  const keyboardHeight = useKeyboardHeight();
   const [filter, setFilter] = useState('all');
   const [budgetModal, setBudgetModal] = useState(false);
   const [fuelModal, setFuelModal] = useState(false);
@@ -511,8 +513,7 @@ export default function CarburantScreen() {
         <TouchableWithoutFeedback onPress={() => setFuelModal(false)}>
           <View style={s.overlay}>
             <TouchableWithoutFeedback>
-              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                <ScrollView style={s.modal} keyboardShouldPersistTaps="handled">
+              <ScrollView style={[s.modal, { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 12 : 20 }]} keyboardShouldPersistTaps="handled">
                   <Text style={s.modalTitle}>Enregistrer une consommation</Text>
                   <Text style={s.vehiculeBadge}>{vehiculeActif?.nom}</Text>
 
@@ -584,8 +585,7 @@ export default function CarburantScreen() {
                       <Text style={{ color: '#fff', fontWeight: '600' }}>Enregistrer</Text>
                     </TouchableOpacity>
                   </View>
-                </ScrollView>
-              </KeyboardAvoidingView>
+              </ScrollView>
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
@@ -596,7 +596,7 @@ export default function CarburantScreen() {
         <TouchableWithoutFeedback onPress={() => setPrixModal(false)}>
           <View style={s.overlay}>
             <TouchableWithoutFeedback>
-              <View style={s.modal}>
+              <View style={[s.modal, { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 12 : 20 }]}>
                 <Text style={s.modalTitle}>Prix du carburant à la pompe</Text>
                 <Text style={s.label}>Prix par litre</Text>
                 <TextInput style={s.input} placeholder="Ex: 650" placeholderTextColor={COLORS.textSecondary}
@@ -620,7 +620,7 @@ export default function CarburantScreen() {
         <TouchableWithoutFeedback onPress={() => setEntretienModal(false)}>
           <View style={s.overlayCenter}>
             <TouchableWithoutFeedback>
-              <View style={s.modalCenter}>
+              <View style={[s.modalCenter, { marginBottom: keyboardHeight > 0 ? keyboardHeight - 20 : 0 }]}>
                 <Text style={s.modalTitle}>Paramètres entretien — {vehiculeActif?.nom}</Text>
                 <Text style={s.label}>Intervalle vidange (km)</Text>
                 <TextInput style={s.input} placeholder="Ex: 5000" placeholderTextColor={COLORS.textSecondary}
