@@ -82,9 +82,10 @@ export default function GlobalScreen() {
             }))
           : [{ Type: '', Personne: 'Aucune donnée', Date: '', 'Montant initial': '', Remboursé: '', Restant: '', Statut: '', Remarque: '' }];
       } else if (mod === 'fuel') {
+        const vMap = Object.fromEntries((state.vehicules || []).map(v => [v.id, v.nom]));
         rows = state.fuel.length
-          ? [...state.fuel].reverse().map(tx => ({ Date: fmtDate(tx.ts), Type: tx.isBudget ? 'Budget' : 'Consommation', Détail: tx.label, 'Montant (FCFA)': tx.amount, Litres: tx.isBudget ? '' : (tx.litres || 0).toFixed(2), Kilométrage: tx.km || '' }))
-          : [{ Date: '', Type: '', Détail: 'Aucune donnée', 'Montant (FCFA)': '', Litres: '', Kilométrage: '' }];
+          ? [...state.fuel].reverse().map(tx => ({ Date: fmtDate(tx.ts), Véhicule: vMap[tx.vehiculeId] || 'Mon véhicule', Type: tx.isBudget ? 'Budget' : 'Consommation', Détail: tx.label, 'Montant (FCFA)': tx.amount, Litres: tx.isBudget ? '' : (tx.litres || 0).toFixed(2), Kilométrage: tx.km || '' }))
+          : [{ Date: '', Véhicule: '', Type: '', Détail: 'Aucune donnée', 'Montant (FCFA)': '', Litres: '', Kilométrage: '' }];
       } else {
         let cum = 0;
         const cumMap = {};
@@ -136,9 +137,10 @@ export default function GlobalScreen() {
               }))
             : [{ Type: '', Personne: 'Aucune donnée', 'Montant initial': '', Remboursé: '', Restant: '', Statut: '' }];
         } else if (mod === 'fuel') {
+          const vMapAll = Object.fromEntries((state.vehicules || []).map(v => [v.id, v.nom]));
           rows = state.fuel.length
-            ? [...state.fuel].reverse().map(tx => ({ Date: fmtDate(tx.ts), Type: tx.isBudget ? 'Budget' : 'Conso', Détail: tx.label, Montant: tx.amount, Litres: tx.isBudget ? '' : (tx.litres || 0).toFixed(2), KM: tx.km || '' }))
-            : [{ Date: '', Type: '', Détail: 'Aucune donnée', Montant: '', Litres: '', KM: '' }];
+            ? [...state.fuel].reverse().map(tx => ({ Date: fmtDate(tx.ts), Véhicule: vMapAll[tx.vehiculeId] || 'Mon véhicule', Type: tx.isBudget ? 'Budget' : 'Conso', Détail: tx.label, Montant: tx.amount, Litres: tx.isBudget ? '' : (tx.litres || 0).toFixed(2), KM: tx.km || '' }))
+            : [{ Date: '', Véhicule: '', Type: '', Détail: 'Aucune donnée', Montant: '', Litres: '', KM: '' }];
         } else if (mod === 'envois') {
           rows = state.envois.length
             ? [...state.envois].reverse().map(tx => ({

@@ -10,6 +10,9 @@ const CAT_DEP_DEFAUT = [
   { key: 'autres', label: 'Autres', icon: 'ellipsis-horizontal-circle-outline', color: '#9b59b6' },
 ];
 
+const VEHICULE_DEFAUT_ID = 'v_default';
+const VEHICULE_DEFAUT = { id: VEHICULE_DEFAUT_ID, nom: 'Mon véhicule', intervalleEntretien: 5000, dernierEntretienKm: 0 };
+
 const defaultState = {
   cam: [],
   envois: [],
@@ -23,6 +26,8 @@ const defaultState = {
   canauxFrequents: CANAUX_DEFAUT,
   categoriesDepenses: CAT_DEP_DEFAUT,
   budgetsParCategorie: {},
+  vehicules: [VEHICULE_DEFAUT],
+  vehiculeActif: VEHICULE_DEFAUT_ID,
 };
 
 export async function loadState() {
@@ -48,6 +53,20 @@ export async function loadState() {
       ? merged.categoriesDepenses
       : CAT_DEP_DEFAUT;
     merged.budgetsParCategorie = merged.budgetsParCategorie || {};
+    // Migration véhicules
+    if (!merged.vehicules || merged.vehicules.length === 0) {
+      merged.vehicules = [VEHICULE_DEFAUT];
+    } else {
+      // S'assurer que chaque véhicule a les nouveaux champs
+      merged.vehicules = merged.vehicules.map(v => ({
+        intervalleEntretien: 5000, dernierEntretienKm: 0, ...v,
+      }));
+    }
+    merged.vehiculeActif = merged.vehiculeActif || VEHICULE_DEFAUT_ID;
+    // Assigner les transactions fuel sans vehiculeId au véhicule par défaut
+    merged.fuel = (merged.fuel || []).map(tx =>
+      tx.vehiculeId ? tx : { ...tx, vehiculeId: VEHICULE_DEFAUT_ID }
+    );
     return merged;
   } catch (e) {
     return defaultState;

@@ -9,6 +9,8 @@ const CAT_DEP_DEFAUT = [
   { key: 'autres', label: 'Autres', icon: 'ellipsis-horizontal-circle-outline', color: '#9b59b6' },
 ];
 
+export const VEHICULE_DEFAUT_ID = 'v_default';
+
 const defaultState = {
   cam: [], envois: [], dep: [], fuel: [], creances: [],
   prixLitre: 0, budgetMensuel: 0, devise: 'FCFA',
@@ -16,6 +18,8 @@ const defaultState = {
   canauxFrequents: ['Western Union', 'Mobile Money', 'Virement bancaire', 'Autre'],
   categoriesDepenses: CAT_DEP_DEFAUT,
   budgetsParCategorie: {},
+  vehicules: [{ id: VEHICULE_DEFAUT_ID, nom: 'Mon véhicule', intervalleEntretien: 5000, dernierEntretienKm: 0 }],
+  vehiculeActif: VEHICULE_DEFAUT_ID,
 };
 
 function reducer(state, action) {
@@ -81,6 +85,20 @@ function reducer(state, action) {
     case 'SET_BUDGET_CATEGORIE': return {
       ...state,
       budgetsParCategorie: { ...state.budgetsParCategorie, [action.catKey]: action.montant },
+    };
+    case 'ADD_VEHICULE': return {
+      ...state,
+      vehicules: [...state.vehicules, action.vehicule],
+    };
+    case 'DEL_VEHICULE': return {
+      ...state,
+      vehicules: state.vehicules.filter(v => v.id !== action.id),
+      vehiculeActif: state.vehiculeActif === action.id ? VEHICULE_DEFAUT_ID : state.vehiculeActif,
+    };
+    case 'SET_VEHICULE_ACTIF': return { ...state, vehiculeActif: action.id };
+    case 'SET_ENTRETIEN': return {
+      ...state,
+      vehicules: state.vehicules.map(v => v.id === action.id ? { ...v, ...action.changes } : v),
     };
     default: return state;
   }
