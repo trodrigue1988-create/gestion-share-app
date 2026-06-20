@@ -1,8 +1,37 @@
-﻿import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, fmtMontant, fmtDate, calcCreanceRestant, isCreanceSolde } from '../storage/utils';
 import { AppContext } from '../AppContext';
+
+function echeanceStatus(c) {
+  if (!c.echeance || isCreanceSolde(c)) return null;
+  const now = Date.now();
+  const diffMs = c.echeance - now;
+  const diffJours = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffMs < 0) return { type: 'retard', jours: Math.abs(diffJours) };
+  if (diffJours <= 3) return { type: 'proche', jours: diffJours };
+  return { type: 'ok', date: new Date(c.echeance).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) };
+}
+
+async function relancerWhatsApp(c, restant, devise) {
+  const retard = echeanceStatus(c);
+  let msg = `Salut ${c.personne}, petit rappel concernant le prêt de ${fmtMontant(restant, devise)}`;
+  if (retard?.type === 'retard') {
+    msg += ` — l'échéance est dépassée de ${retard.jours} jour${retard.jours > 1 ? 's' : ''}`;
+  } else if (retard?.type === 'proche') {
+    msg += ` — l'échéance approche (dans ${retard.jours} jour${retard.jours > 1 ? 's' : ''})`;
+  }
+  msg += `. Merci !`;
+
+  const url = `whatsapp://send?text=${encodeURIComponent(msg)}`;
+  const canOpen = await Linking.canOpenURL(url);
+  if (!canOpen) {
+    Alert.alert('WhatsApp non disponible', "WhatsApp n'est pas installé sur cet appareil.");
+    return;
+  }
+  Linking.openURL(url);
+}
 
 export default function CreanceCard({ c, onAddRemb, onDelete, onToggleCloture, onDelRemb }) {
   const [open, setOpen] = useState(false);
@@ -12,6 +41,36 @@ export default function CreanceCard({ c, onAddRemb, onDelete, onToggleCloture, o
   const solde = isCreanceSolde(c);
   const totalRemb = (c.remboursements || []).reduce((s, r) => s + r.montant, 0);
   const pct = c.montant > 0 ? Math.min(totalRemb / c.montant, 1) : 0;
+  const ech = echeanceStatus(c);
+
+  function Badge() {
+    if (solde) {
+      return (
+        <View style={[s.badge, s.badgeSolde]}>
+          <Text style={[s.badgeTxt, { color: COLORS.success }]}>✓ Soldé</Text>
+        </View>
+      );
+    }
+    if (ech?.type === 'retard') {
+      return (
+        <View style={[s.badge, { backgroundColor: COLORS.dangerBg }]}>
+          <Text style={[s.badgeTxt, { color: COLORS.danger }]}>⚠ Retard {ech.jours}j</Text>
+        </View>
+      );
+    }
+    if (ech?.type === 'proche') {
+      return (
+        <View style={[s.badge, { backgroundColor: COLORS.warningBg }]}>
+          <Text style={[s.badgeTxt, { color: COLORS.warning }]}>⏰ J-{ech.jours}</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={[s.badge, s.badgeEnCours]}>
+        <Text style={[s.badgeTxt, { color: COLORS.warning }]}>⏳ En cours</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[s.card, solde && s.cardSolde]}>
@@ -29,12 +88,15 @@ export default function CreanceCard({ c, onAddRemb, onDelete, onToggleCloture, o
             </Text>
           </View>
           <View style={s.headerRow}>
-            <Text style={s.sub} numberOfLines={1}>{fmtDate(c.date)}{c.remarque ? ` · ${c.remarque}` : ''}</Text>
-            <View style={[s.badge, solde ? s.badgeSolde : s.badgeEnCours]}>
-              <Text style={[s.badgeTxt, { color: solde ? COLORS.success : COLORS.warning }]}>
-                {solde ? '✓ Soldé' : '⏳ En cours'}
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={s.sub} numberOfLines={1}>
+                {fmtDate(c.date)}{c.remarque ? ` · ${c.remarque}` : ''}
               </Text>
+              {ech?.type === 'ok' && (
+                <Text style={s.echDate}>Échéance : {ech.date}</Text>
+              )}
             </View>
+            <Badge />
           </View>
           {!solde && c.montant > 0 && (
             <View style={s.miniBar}>
@@ -87,6 +149,15 @@ export default function CreanceCard({ c, onAddRemb, onDelete, onToggleCloture, o
               <Ionicons name={c.cloture ? 'lock-open-outline' : 'checkmark-circle-outline'} size={15} color={COLORS.info} />
               <Text style={[s.actionTxt, { color: COLORS.info }]}>{c.cloture ? 'Réactiver' : 'Marquer soldé'}</Text>
             </TouchableOpacity>
+            {c.type === 'pret' && !solde && (
+              <TouchableOpacity
+                style={[s.actionBtn, { borderColor: '#25D366' + '50', backgroundColor: '#f0fdf4' }]}
+                onPress={() => relancerWhatsApp(c, restant, devise)}
+              >
+                <Ionicons name="logo-whatsapp" size={15} color="#25D366" />
+                <Text style={[s.actionTxt, { color: '#25D366' }]}>Relancer</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={[s.actionBtn, { borderColor: COLORS.danger + '30', backgroundColor: COLORS.dangerBg }]} onPress={() => onDelete(c.id)}>
               <Ionicons name="trash-outline" size={15} color={COLORS.danger} />
               <Text style={[s.actionTxt, { color: COLORS.danger }]}>Supprimer</Text>
@@ -105,11 +176,12 @@ const s = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   avatarTxt: { fontSize: 17, fontWeight: '700' },
   headerInfo: { flex: 1 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 3 },
   personne: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary },
   montant: { fontSize: 15, fontWeight: '700' },
-  sub: { fontSize: 11, color: COLORS.textSecondary, flex: 1, marginRight: 8 },
-  badge: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  sub: { fontSize: 11, color: COLORS.textSecondary },
+  echDate: { fontSize: 10, color: COLORS.textSecondary, marginTop: 2, fontStyle: 'italic' },
+  badge: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, flexShrink: 0 },
   badgeEnCours: { backgroundColor: COLORS.warningBg },
   badgeSolde: { backgroundColor: COLORS.successBg },
   badgeTxt: { fontSize: 10, fontWeight: '700' },

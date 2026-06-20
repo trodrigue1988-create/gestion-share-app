@@ -17,6 +17,7 @@ const TYPE_TABS = [
 const STATUT_TABS = [
   { key: 'all', label: 'Tout' },
   { key: 'encours', label: 'En cours' },
+  { key: 'retard', label: '⚠ Retard' },
   { key: 'solde', label: 'Soldé' },
 ];
 
@@ -37,17 +38,22 @@ export default function CreancesScreen() {
   const net = restantPrets - restantDettes;
 
   const current = type === 'pret' ? prets : dettes;
-  const filtered = statutFilter === 'all'
-    ? current
-    : current.filter(c => statutFilter === 'solde' ? isCreanceSolde(c) : !isCreanceSolde(c));
+  const now = Date.now();
+  const filtered = current.filter(c => {
+    if (statutFilter === 'all') return true;
+    if (statutFilter === 'solde') return isCreanceSolde(c);
+    if (statutFilter === 'retard') return !isCreanceSolde(c) && c.echeance && c.echeance < now;
+    return !isCreanceSolde(c); // encours
+  });
 
   const enCoursCount = current.filter(c => !isCreanceSolde(c)).length;
   const soldeCount = current.filter(c => isCreanceSolde(c)).length;
+  const retardCount = current.filter(c => !isCreanceSolde(c) && c.echeance && c.echeance < Date.now()).length;
 
-  function handleNewCreance(personne, montant, remarque) {
+  function handleNewCreance(personne, montant, remarque, echeance) {
     dispatch({
       type: 'ADD_CREANCE',
-      creance: { id: Date.now(), type, personne, montant, date: Date.now(), remarque, remboursements: [], cloture: false }
+      creance: { id: Date.now(), type, personne, montant, date: Date.now(), remarque, echeance: echeance || null, remboursements: [], cloture: false }
     });
     setNewModal(false);
   }
@@ -88,6 +94,9 @@ export default function CreancesScreen() {
 
         <View style={s.statsRow}>
           <Text style={s.statsTxt}><Text style={{ color: COLORS.warning }}>{enCoursCount}</Text> en cours</Text>
+          {retardCount > 0 && (
+            <Text style={s.statsTxt}><Text style={{ color: COLORS.danger }}>{retardCount}</Text> en retard</Text>
+          )}
           <Text style={s.statsTxt}><Text style={{ color: COLORS.success }}>{soldeCount}</Text> soldé(s)</Text>
         </View>
 

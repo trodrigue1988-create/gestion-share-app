@@ -9,15 +9,18 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
   const [personne, setPersonne] = useState('');
   const [montant, setMontant] = useState('');
   const [remarque, setRemarque] = useState('');
+  const [joursEcheance, setJoursEcheance] = useState('');
 
   useEffect(() => {
-    if (visible) { setPersonne(''); setMontant(''); setRemarque(''); }
+    if (visible) { setPersonne(''); setMontant(''); setRemarque(''); setJoursEcheance(''); }
   }, [visible]);
 
   function handleSave() {
-    const amt = parseFloat(montant);
+    const amt = parseFloat(montant.replace(/\s/g, '').replace(',', '.'));
     if (!personne.trim() || !amt || amt <= 0) return;
-    onSave(personne.trim(), amt, remarque.trim());
+    const jours = parseInt(joursEcheance, 10);
+    const echeance = jours > 0 ? Date.now() + jours * 24 * 60 * 60 * 1000 : null;
+    onSave(personne.trim(), amt, remarque.trim(), echeance);
   }
 
   return (
@@ -39,7 +42,7 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
                   autoFocus
                 />
 
-                <Text style={s.label}>Montant (FCFA)</Text>
+                <Text style={s.label}>Montant</Text>
                 <TextInput
                   style={s.input}
                   placeholder="Ex: 50 000"
@@ -47,6 +50,16 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
                   keyboardType="numeric"
                   value={montant}
                   onChangeText={setMontant}
+                />
+
+                <Text style={s.label}>Échéance dans (jours) — optionnel</Text>
+                <TextInput
+                  style={s.input}
+                  placeholder="Ex: 30  (laisser vide si pas d'échéance)"
+                  placeholderTextColor={COLORS.textSecondary}
+                  keyboardType="numeric"
+                  value={joursEcheance}
+                  onChangeText={setJoursEcheance}
                 />
 
                 <Text style={s.label}>Remarque (optionnel)</Text>
@@ -79,7 +92,7 @@ export default function CreanceModal({ visible, title, onClose, onSave }) {
 
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: COLORS.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  modal: { backgroundColor: COLORS.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 32 },
   title: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 16 },
   label: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 },
   input: { backgroundColor: COLORS.bg, borderWidth: 0.5, borderColor: COLORS.border, borderRadius: 10, padding: 12, fontSize: 14, color: COLORS.textPrimary, marginBottom: 12 },
