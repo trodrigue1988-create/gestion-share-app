@@ -100,6 +100,7 @@ function reducer(state, action) {
       ...state,
       vehicules: state.vehicules.map(v => v.id === action.id ? { ...v, ...action.changes } : v),
     };
+    case 'RESTORE_STATE': return { ...state, ...action.payload };
     default: return state;
   }
 }

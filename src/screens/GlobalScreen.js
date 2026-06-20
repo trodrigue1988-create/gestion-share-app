@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
 import { AppContext } from '../AppContext';
 import { AuthContext } from '../auth/AuthContext';
 import { clearPin } from '../auth/authStorage';
@@ -176,6 +177,55 @@ export default function GlobalScreen() {
     }
   }
 
+  async function sauvegarder() {
+    try {
+      const { cam, ...dataToExport } = state;
+      const json = JSON.stringify(dataToExport, null, 2);
+      const today = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+      const path = FileSystem.documentDirectory + `GerèTout_Sauvegarde_${today}.json`;
+      await FileSystem.writeAsStringAsync(path, json, { encoding: FileSystem.EncodingType.UTF8 });
+      await Sharing.shareAsync(path, { mimeType: 'application/json', dialogTitle: 'Partager la sauvegarde' });
+    } catch (e) {
+      Alert.alert('Erreur', 'Impossible de créer la sauvegarde.');
+    }
+  }
+
+  async function restaurer() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+      const fileUri = result.assets[0].uri;
+      const raw = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 });
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch {
+        Alert.alert('Fichier invalide', 'Le fichier sélectionné n\'est pas un JSON valide.');
+        return;
+      }
+      const requiredKeys = ['dep', 'envois', 'creances', 'fuel'];
+      const isValid = requiredKeys.every(k => Array.isArray(parsed[k]));
+      if (!isValid) {
+        Alert.alert('Fichier invalide', 'Fichier de sauvegarde invalide : structure non reconnue.');
+        return;
+      }
+      Alert.alert(
+        'Restaurer la sauvegarde',
+        'Ceci va remplacer toutes tes données actuelles par celles de la sauvegarde. Cette action est irréversible. Continuer ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Restaurer', style: 'destructive', onPress: () => {
+              const { pin, ...safePayload } = parsed;
+              dispatch({ type: 'RESTORE_STATE', payload: safePayload });
+              Alert.alert('Succès', 'Tes données ont été restaurées avec succès.');
+            }
+          }
+        ]
+      );
+    } catch (e) {
+      Alert.alert('Erreur', 'Impossible de lire le fichier de sauvegarde.');
+    }
+  }
+
   const fuelCons = state.fuel.filter(t => !t.isBudget);
   const l100 = calcLitrePer100(state.fuel);
 
@@ -246,6 +296,18 @@ export default function GlobalScreen() {
         <Text style={s.exportAllTxt}>Exporter tout — 4 onglets Excel</Text>
       </TouchableOpacity>
 
+      <View style={s.backupSection}>
+        <TouchableOpacity style={s.backupBtn} onPress={sauvegarder}>
+          <Ionicons name="cloud-upload-outline" size={18} color="#1E88E5" />
+          <Text style={s.backupBtnTxt}>Sauvegarder mes données</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.restoreBtn} onPress={restaurer}>
+          <Ionicons name="cloud-download-outline" size={18} color={COLORS.warning} />
+          <Text style={s.restoreBtnTxt}>Restaurer une sauvegarde</Text>
+        </TouchableOpacity>
+        <Text style={s.backupHint}>Sauvegarde ton fichier régulièrement (Google Drive, email) pour ne jamais perdre tes données si tu changes de téléphone.</Text>
+      </View>
+
       <TouchableOpacity style={s.securityBtn} onPress={handleChangePin}>
         <Ionicons name="lock-closed-outline" size={16} color={COLORS.textSecondary} />
         <Text style={s.securityTxt}>Changer le code PIN</Text>
@@ -278,6 +340,12 @@ const s = StyleSheet.create({
   statVal: { fontSize: 12, fontWeight: '600', color: COLORS.textPrimary },
   exportAllBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderRadius: 16, borderWidth: 1, borderColor: COLORS.success + '50', backgroundColor: COLORS.successBg, marginBottom: 12 },
   exportAllTxt: { fontSize: 14, color: COLORS.success, fontWeight: '600' },
+  backupSection: { marginBottom: 12, backgroundColor: COLORS.card, borderRadius: 16, borderWidth: 0.5, borderColor: COLORS.border, padding: 14, gap: 10 },
+  backupBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 13, borderRadius: 12, borderWidth: 1, borderColor: '#1E88E530', backgroundColor: '#E3F2FD' },
+  backupBtnTxt: { fontSize: 14, color: '#1E88E5', fontWeight: '600' },
+  restoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 13, borderRadius: 12, borderWidth: 1, borderColor: COLORS.warning + '40', backgroundColor: '#FFF8E1' },
+  restoreBtnTxt: { fontSize: 14, color: COLORS.warning, fontWeight: '600' },
+  backupHint: { fontSize: 11, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 16 },
   securityBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, marginBottom: 8, borderRadius: 12, borderWidth: 0.5, borderColor: COLORS.border, backgroundColor: COLORS.card },
   securityTxt: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
   credit: { textAlign: 'center', fontSize: 11, color: COLORS.border, marginBottom: 30, marginTop: 4 },
