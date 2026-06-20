@@ -71,7 +71,10 @@ export default function CreancesScreen() {
   }
 
   function handleDelRemb(id, ts) {
-    dispatch({ type: 'DEL_REMB', id, ts });
+    Alert.alert('Supprimer', 'Confirmer la suppression de ce remboursement ?', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Supprimer', style: 'destructive', onPress: () => dispatch({ type: 'DEL_REMB', id, ts }) }
+    ]);
   }
 
   function handleToggleCloture(id) {
