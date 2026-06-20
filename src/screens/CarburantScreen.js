@@ -416,6 +416,12 @@ export default function CarburantScreen() {
           )}
         </ScrollView>
 
+        {/* Bouton réglages entretien permanent */}
+        <TouchableOpacity style={s.entretienSettingsBtn} onPress={openEntretienModal}>
+          <Ionicons name="settings-outline" size={13} color={COLORS.textSecondary} />
+          <Text style={s.entretienSettingsTxt}>Réglages entretien</Text>
+        </TouchableOpacity>
+
         {/* Alerte entretien */}
         {vehiculeActif && (
           <EntretienCard
@@ -470,6 +476,12 @@ export default function CarburantScreen() {
 
         {/* Graphique L/100 */}
         <L100Chart cons={cons} devise={devise} />
+        {cons.length > 0 && !lastKm && (
+          <View style={s.kmHintBox}>
+            <Ionicons name="information-circle-outline" size={14} color={COLORS.textSecondary} />
+            <Text style={s.kmHintTxt}>Renseigne le kilométrage à chaque plein pour activer le suivi d'entretien.</Text>
+          </View>
+        )}
 
         <FilterBar active={filter} onChange={setFilter} />
 
@@ -645,6 +657,11 @@ const s = StyleSheet.create({
   addVehiculeOk: { width: 28, height: 28, borderRadius: 8, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
 
   vehiculeBadge: { fontSize: 11, color: COLORS.primary, fontWeight: '600', backgroundColor: '#E8F5EE', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginBottom: 12 },
+
+  entretienSettingsBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-end', marginHorizontal: 14, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 0.5, borderColor: COLORS.border, backgroundColor: COLORS.bg },
+  entretienSettingsTxt: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '500' },
+  kmHintBox: { flexDirection: 'row', alignItems: 'center', gap: 6, marginHorizontal: 14, marginBottom: 10, padding: 10, backgroundColor: COLORS.bg, borderRadius: 10, borderWidth: 0.5, borderColor: COLORS.border },
+  kmHintTxt: { flex: 1, fontSize: 11, color: COLORS.textSecondary, lineHeight: 15 },
 
   prixBar: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 14, marginBottom: 12, padding: 12, backgroundColor: COLORS.bg, borderRadius: 12, borderWidth: 0.5, borderColor: COLORS.border },
   prixLabel: { fontSize: 11, color: COLORS.textSecondary },
