@@ -44,7 +44,7 @@ const DEVISES = ['FCFA', 'EUR', 'USD'];
 
 export default function GlobalScreen() {
   const { state, dispatch } = useContext(AppContext);
-  const { lock } = useContext(AuthContext);
+  const { lock, suspendreVerrouillage } = useContext(AuthContext);
   const devise = state.devise || 'FCFA';
 
   function handleChangePin() {
@@ -192,6 +192,7 @@ export default function GlobalScreen() {
 
   async function restaurer() {
     try {
+      suspendreVerrouillage();
       const result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
       if (result.canceled || !result.assets || result.assets.length === 0) return;
       const fileUri = result.assets[0].uri;

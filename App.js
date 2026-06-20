@@ -66,11 +66,19 @@ function MainTabs() {
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
   const appState = useRef(AppState.currentState);
+  const verrouSuspendu = useRef(false);
+  const suspendTimer = useRef(null);
+
+  function suspendreVerrouillage(dureeMs = 10000) {
+    verrouSuspendu.current = true;
+    if (suspendTimer.current) clearTimeout(suspendTimer.current);
+    suspendTimer.current = setTimeout(() => { verrouSuspendu.current = false; }, dureeMs);
+  }
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', nextState => {
       if (appState.current === 'active' && nextState !== 'active') {
-        setUnlocked(false);
+        if (!verrouSuspendu.current) setUnlocked(false);
       }
       appState.current = nextState;
     });
@@ -79,7 +87,7 @@ export default function App() {
 
   return (
     <AppProvider>
-      <AuthContext.Provider value={{ lock: () => setUnlocked(false) }}>
+      <AuthContext.Provider value={{ lock: () => setUnlocked(false), suspendreVerrouillage }}>
         <StatusBar style="dark" />
         {unlocked ? <MainTabs /> : <LockScreen onUnlock={() => setUnlocked(true)} />}
       </AuthContext.Provider>

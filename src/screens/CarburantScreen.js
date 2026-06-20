@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { AppContext, VEHICULE_DEFAUT_ID } from '../AppContext';
+import { AuthContext } from '../auth/AuthContext';
 import SoldeCard from '../components/SoldeCard';
 import FilterBar, { applyFilter } from '../components/FilterBar';
 import TxList from '../components/TxList';
@@ -179,6 +180,7 @@ const ec = StyleSheet.create({
 
 export default function CarburantScreen() {
   const { state, dispatch } = useContext(AppContext);
+  const { suspendreVerrouillage } = useContext(AuthContext);
   const [filter, setFilter] = useState('all');
   const [budgetModal, setBudgetModal] = useState(false);
   const [fuelModal, setFuelModal] = useState(false);
@@ -249,11 +251,13 @@ export default function CarburantScreen() {
   }
 
   async function openCamera() {
+    suspendreVerrouillage();
     const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
     if (!result.canceled) processPhoto(result.assets[0]);
   }
 
   async function openGallery() {
+    suspendreVerrouillage();
     const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
     if (!result.canceled) processPhoto(result.assets[0]);
   }
