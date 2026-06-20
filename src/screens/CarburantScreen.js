@@ -240,6 +240,7 @@ export default function CarburantScreen() {
     : null;
 
   async function pickPhoto() {
+    suspendreVerrouillage(30000); // suspend avant toute action système (permission + caméra)
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission refusée', "Autorise l'accès à la caméra dans les paramètres.");
