@@ -57,9 +57,20 @@ export default function GlobalScreen() {
 
   function exportMod(mod) {
     try {
-      const names = { cam: 'Envoi_Ext', dep: 'Depenses', fuel: 'Carburant', creances: 'Creances' };
+      const names = { envois: 'Envoi_Ext', dep: 'Depenses', fuel: 'Carburant', creances: 'Creances' };
       let rows;
-      if (mod === 'creances') {
+      if (mod === 'envois') {
+        rows = state.envois.length
+          ? [...state.envois].reverse().map(tx => ({
+              Date: fmtDate(tx.ts),
+              Destinataire: tx.destinataire || 'Non renseigné',
+              Canal: tx.canal || 'Non renseigné',
+              'Montant envoyé': tx.amount,
+              Frais: tx.frais || 0,
+              'Motif / Remarque': tx.motif || tx.label || '',
+            }))
+          : [{ Date: '', Destinataire: 'Aucune donnée', Canal: '', 'Montant envoyé': '', Frais: '', 'Motif / Remarque': '' }];
+      } else if (mod === 'creances') {
         rows = state.creances.length
           ? [...state.creances].reverse().map(c => ({
               Type: c.type === 'pret' ? 'Prêt' : 'Dette',
@@ -107,7 +118,7 @@ export default function GlobalScreen() {
       const wb = XLSX.utils.book_new();
       const mods = [
         { mod: 'dep', name: 'Depenses' },
-        { mod: 'cam', name: 'Envoi Ext' },
+        { mod: 'envois', name: 'Envoi Ext' },
         { mod: 'creances', name: 'Creances' },
         { mod: 'fuel', name: 'Carburant' },
       ];
@@ -128,6 +139,17 @@ export default function GlobalScreen() {
           rows = state.fuel.length
             ? [...state.fuel].reverse().map(tx => ({ Date: fmtDate(tx.ts), Type: tx.isBudget ? 'Budget' : 'Conso', Détail: tx.label, Montant: tx.amount, Litres: tx.isBudget ? '' : (tx.litres || 0).toFixed(2), KM: tx.km || '' }))
             : [{ Date: '', Type: '', Détail: 'Aucune donnée', Montant: '', Litres: '', KM: '' }];
+        } else if (mod === 'envois') {
+          rows = state.envois.length
+            ? [...state.envois].reverse().map(tx => ({
+                Date: fmtDate(tx.ts),
+                Destinataire: tx.destinataire || 'Non renseigné',
+                Canal: tx.canal || 'Non renseigné',
+                'Montant envoyé': tx.amount,
+                Frais: tx.frais || 0,
+                'Motif / Remarque': tx.motif || tx.label || '',
+              }))
+            : [{ Date: '', Destinataire: 'Aucune donnée', Canal: '', 'Montant envoyé': '', Frais: '', 'Motif / Remarque': '' }];
         } else {
           const catLabel = CAT_LABELS[mod];
           rows = state[mod].length
@@ -183,13 +205,13 @@ export default function GlobalScreen() {
       />
       <ModCard
         name="Envoi Extérieur" icon="send-outline" color={COLORS.info}
-        solde={calcSolde(state.cam)} devise={devise}
+        solde={-(state.envois || []).reduce((s, t) => s + t.amount, 0)} devise={devise}
         stats={[
-          { label: 'Dépôts reçus', val: '+' + fmtMontant(state.cam.filter(t => t.plus).reduce((s, t) => s + t.amount, 0), devise), color: COLORS.info },
-          { label: 'Envois', val: '-' + fmtMontant(state.cam.filter(t => !t.plus).reduce((s, t) => s + t.amount, 0), devise), color: COLORS.danger },
-          { label: 'Opérations', val: String(state.cam.length) },
+          { label: 'Total envoyé', val: fmtMontant((state.envois || []).reduce((s, t) => s + t.amount, 0), devise), color: COLORS.info },
+          { label: 'Frais totaux', val: fmtMontant((state.envois || []).reduce((s, t) => s + (t.frais || 0), 0), devise), color: COLORS.danger },
+          { label: 'Envois', val: String((state.envois || []).length) },
         ]}
-        onExport={() => exportMod('cam')}
+        onExport={() => exportMod('envois')}
       />
       <ModCard
         name="Créances" icon="people-outline" color={COLORS.textPrimary}

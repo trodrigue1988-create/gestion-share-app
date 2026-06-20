@@ -3,7 +3,12 @@ import { loadState, saveState } from './storage/storage';
 
 export const AppContext = createContext();
 
-const defaultState = { cam: [], dep: [], fuel: [], creances: [], prixLitre: 0, budgetMensuel: 0, devise: 'FCFA' };
+const defaultState = {
+  cam: [], envois: [], dep: [], fuel: [], creances: [],
+  prixLitre: 0, budgetMensuel: 0, devise: 'FCFA',
+  destinatairesFrequents: [],
+  canauxFrequents: ['Western Union', 'Mobile Money', 'Virement bancaire', 'Autre'],
+};
 
 function reducer(state, action) {
   switch (action.type) {
@@ -32,6 +37,26 @@ function reducer(state, action) {
     case 'TOGGLE_CLOTURE': return {
       ...state,
       creances: state.creances.map(c => c.id === action.id ? { ...c, cloture: !c.cloture } : c)
+    };
+    case 'ADD_DEST': return {
+      ...state,
+      destinatairesFrequents: state.destinatairesFrequents.includes(action.nom)
+        ? state.destinatairesFrequents
+        : [...state.destinatairesFrequents, action.nom]
+    };
+    case 'DEL_DEST': return {
+      ...state,
+      destinatairesFrequents: state.destinatairesFrequents.filter(n => n !== action.nom)
+    };
+    case 'ADD_CANAL': return {
+      ...state,
+      canauxFrequents: state.canauxFrequents.includes(action.nom)
+        ? state.canauxFrequents
+        : [...state.canauxFrequents, action.nom]
+    };
+    case 'DEL_CANAL': return {
+      ...state,
+      canauxFrequents: state.canauxFrequents.filter(n => n !== action.nom)
     };
     default: return state;
   }

@@ -18,16 +18,28 @@ function TxItem({ tx, onDelete, isFuel, devise }) {
   if (tx.km) detail.push(tx.km.toLocaleString('fr-FR') + ' km');
   if (isConso && tx.litres) detail.push(fmtLitres(tx.litres));
 
+  const isEnvoi = tx.destinataire !== undefined;
+  const mainLabel = isEnvoi
+    ? (tx.destinataire || 'Non renseigné')
+    : (tx.label || 'Opération');
+  const subParts = isEnvoi
+    ? [
+        fmtDate(tx.ts),
+        tx.canal || 'Non renseigné',
+        tx.frais > 0 ? `Frais: ${fmtMontant(tx.frais, devise)}` : null,
+        tx.motif || null,
+      ].filter(Boolean)
+    : [fmtDate(tx.ts), ...detail];
+
   return (
     <View style={s.row}>
       <View style={[s.icon, { backgroundColor: iconBg }]}>
         <Ionicons name={iconName} size={16} color={iconColor} />
       </View>
       <View style={s.info}>
-        <Text style={s.label} numberOfLines={1}>{tx.label}</Text>
+        <Text style={s.label} numberOfLines={1}>{mainLabel}</Text>
         <Text style={s.date}>
-          {fmtDate(tx.ts)}
-          {detail.length > 0 ? ' · ' + detail.join(' · ') : ''}
+          {subParts.join(' · ')}
         </Text>
       </View>
       <View style={s.right}>
