@@ -22,8 +22,9 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-"android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -35,9 +36,10 @@
         }
       ]
     ],
+    "owner": "rod26",
     "extra": {
       "eas": {
-        "projectId": "d1027ef7-a7ac-465e-8ab6-c3fd6ac2742b"
+        "projectId": "adc322ec-7736-4e91-a434-ce55de351330"
       }
     }
   }
