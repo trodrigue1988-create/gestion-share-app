@@ -15,38 +15,6 @@
   infoBg: '#eff6ff',
 };
 
-export const MODULES = {
-  om: {
-    key: 'om',
-    name: 'Orange Money',
-    icon: 'phone-portrait-outline',
-    color: '#27AE60',
-    actions: [
-      { key: 'entree', label: 'Entrée reçue', icon: 'arrow-down-circle-outline', isPlus: true },
-      { key: 'sortie', label: 'Envoi fait', icon: 'arrow-up-circle-outline', isPlus: false },
-    ],
-  },
-  cam: {
-    key: 'cam',
-    name: 'Compte Cameroun',
-    icon: 'location-outline',
-    color: '#3b82f6',
-    actions: [
-      { key: 'ravit', label: 'Ravitaillement', icon: 'cash-outline', isPlus: true },
-      { key: 'transfert', label: 'Transfert envoyé', icon: 'send-outline', isPlus: false },
-    ],
-  },
-  dep: {
-    key: 'dep',
-    name: 'Dépenses perso',
-    icon: 'receipt-outline',
-    color: '#22c55e',
-    actions: [
-      { key: 'appro', label: 'Approvisionner', icon: 'wallet-outline', isPlus: true },
-      { key: 'depense', label: 'Dépense', icon: 'cart-outline', isPlus: false },
-    ],
-  },
-};
 
 export function fmtMontant(n, devise = 'FCFA') {
   if (devise === 'EUR') {

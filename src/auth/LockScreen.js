@@ -2,8 +2,11 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../storage/utils';
 import { hasPin, setPin, verifyPin } from './authStorage';
+
+const ONBOARDING_KEY = 'onboarding_vu';
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 const PIN_LEN = 4;
@@ -18,11 +21,14 @@ export default function LockScreen({ onUnlock }) {
   useEffect(() => {
     (async () => {
       const exists = await hasPin();
-      setMode(exists ? 'unlock' : 'create');
       if (exists) {
         const compatible = await LocalAuthentication.hasHardwareAsync();
         const enrolled = await LocalAuthentication.isEnrolledAsync();
         setBiometricAvailable(compatible && enrolled);
+        setMode('unlock');
+      } else {
+        const onboardingVu = await AsyncStorage.getItem(ONBOARDING_KEY);
+        setMode(onboardingVu ? 'create' : 'onboarding');
       }
     })();
   }, []);
@@ -34,7 +40,7 @@ export default function LockScreen({ onUnlock }) {
   async function tryBiometric() {
     try {
       const res = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Déverrouiller RodBudget',
+        promptMessage: 'Déverrouiller GerèTout',
         cancelLabel: 'Annuler',
       });
       if (res.success) onUnlock();
@@ -80,7 +86,32 @@ export default function LockScreen({ onUnlock }) {
     : mode === 'unlock' ? 'Entre ton code à 4 chiffres'
     : '';
 
+  async function handleCommencer() {
+    await AsyncStorage.setItem(ONBOARDING_KEY, '1');
+    setMode('create');
+  }
+
   if (mode === 'loading') return <View style={s.container} />;
+
+  if (mode === 'onboarding') {
+    return (
+      <View style={s.container}>
+        <View style={s.onboardingLogoWrap}>
+          <View style={s.onboardingLogoBg}>
+            <Text style={s.onboardingLogoTxt}>G</Text>
+          </View>
+        </View>
+        <Text style={s.onboardingTitle}>Bienvenue sur GerèTout</Text>
+        <Text style={s.onboardingSub}>
+          Gère tes dépenses, tes envois d'argent, tes créances et ton carburant, tout au même endroit.{'\n'}Tes données restent uniquement sur ton téléphone.
+        </Text>
+        <TouchableOpacity style={s.commencerBtn} onPress={handleCommencer} activeOpacity={0.8}>
+          <Text style={s.commencerTxt}>Commencer</Text>
+          <Ionicons name="arrow-forward" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={s.container}>
@@ -89,7 +120,7 @@ export default function LockScreen({ onUnlock }) {
         <View style={s.logoBg}>
           <Ionicons name="lock-closed" size={32} color={COLORS.primary} />
         </View>
-        <Text style={s.appName}>RodBudget</Text>
+        <Text style={s.appName}>GerèTout</Text>
       </View>
 
       {/* Titre */}
@@ -168,6 +199,14 @@ const s = StyleSheet.create({
   keyHidden: { opacity: 0 },
   keyDel: {},
   keyTxt: { fontSize: 26, fontWeight: '400', color: COLORS.textPrimary },
+
+  onboardingLogoWrap: { alignItems: 'center', marginBottom: 36 },
+  onboardingLogoBg: { width: 110, height: 110, borderRadius: 30, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
+  onboardingLogoTxt: { fontSize: 64, fontWeight: '800', color: '#fff', lineHeight: 76 },
+  onboardingTitle: { fontSize: 26, fontWeight: '800', color: COLORS.textPrimary, textAlign: 'center', marginBottom: 16, letterSpacing: -0.5 },
+  onboardingSub: { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 22, maxWidth: 300, marginBottom: 48 },
+  commencerBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.primary, paddingHorizontal: 36, paddingVertical: 16, borderRadius: 28, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  commencerTxt: { fontSize: 17, fontWeight: '700', color: '#fff' },
 
   bioBtn: { marginTop: 28 },
   bioBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 20, borderWidth: 1, borderColor: '#B8DFCA', backgroundColor: '#E8F5EE' },
