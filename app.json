@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "RodBudget",
+    "slug": "gestion-share-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#27AE60"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#27AE60"
+      },
+      "package": "com.gestionapp.share",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Accès à tes photos pour lire le tableau de bord.",
+          "cameraPermission": "Accès à la caméra pour photographier le tableau de bord."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d1027ef7-a7ac-465e-8ab6-c3fd6ac2742b"
+      }
+    }
+  }
+}
