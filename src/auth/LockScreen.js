@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -18,6 +18,7 @@ export default function LockScreen({ onUnlock }) {
   const [error, setError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const authLock = useRef(false); // ref pour éviter les stale closures
 
   useEffect(() => {
     (async () => {
@@ -39,7 +40,8 @@ export default function LockScreen({ onUnlock }) {
   }, [mode, biometricAvailable]);
 
   async function tryBiometric() {
-    if (isAuthenticating) return;
+    if (authLock.current) return;
+    authLock.current = true;
     setIsAuthenticating(true);
     try {
       const res = await LocalAuthentication.authenticateAsync({
@@ -49,6 +51,7 @@ export default function LockScreen({ onUnlock }) {
       if (res.success) onUnlock();
     } catch (e) {
     } finally {
+      authLock.current = false;
       setIsAuthenticating(false);
     }
   }
