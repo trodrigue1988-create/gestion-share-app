@@ -69,10 +69,15 @@ export default function App() {
   const verrouSuspendu = useRef(false);
   const suspendTimer = useRef(null);
 
-  function suspendreVerrouillage(dureeMs = 10000) {
-    verrouSuspendu.current = true;
+  function suspendreVerrouillage(actif = true) {
     if (suspendTimer.current) clearTimeout(suspendTimer.current);
-    suspendTimer.current = setTimeout(() => { verrouSuspendu.current = false; }, dureeMs);
+    if (actif) {
+      verrouSuspendu.current = true;
+      // filet de sécurité : 2 minutes max si jamais false n'est jamais appelé
+      suspendTimer.current = setTimeout(() => { verrouSuspendu.current = false; }, 120000);
+    } else {
+      verrouSuspendu.current = false;
+    }
   }
 
   useEffect(() => {

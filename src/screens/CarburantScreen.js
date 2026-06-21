@@ -240,29 +240,39 @@ export default function CarburantScreen() {
     : null;
 
   async function pickPhoto() {
-    suspendreVerrouillage(30000); // suspend avant toute action système (permission + caméra)
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission refusée', "Autorise l'accès à la caméra dans les paramètres.");
-      return;
+    suspendreVerrouillage(true);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', "Autorise l'accès à la caméra dans les paramètres.");
+        return;
+      }
+      Alert.alert('Photo du tableau de bord', 'Choisir la source', [
+        { text: 'Caméra', onPress: openCamera },
+        { text: 'Galerie', onPress: openGallery },
+        { text: 'Annuler', style: 'cancel', onPress: () => suspendreVerrouillage(false) },
+      ]);
+    } catch (e) {
+      suspendreVerrouillage(false);
     }
-    Alert.alert('Photo du tableau de bord', 'Choisir la source', [
-      { text: 'Caméra', onPress: openCamera },
-      { text: 'Galerie', onPress: openGallery },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
   }
 
   async function openCamera() {
-    suspendreVerrouillage();
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
-    if (!result.canceled) processPhoto(result.assets[0]);
+    try {
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
+      if (!result.canceled) processPhoto(result.assets[0]);
+    } finally {
+      suspendreVerrouillage(false);
+    }
   }
 
   async function openGallery() {
-    suspendreVerrouillage();
-    const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
-    if (!result.canceled) processPhoto(result.assets[0]);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
+      if (!result.canceled) processPhoto(result.assets[0]);
+    } finally {
+      suspendreVerrouillage(false);
+    }
   }
 
   async function processPhoto(asset) {

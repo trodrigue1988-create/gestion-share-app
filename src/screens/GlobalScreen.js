@@ -191,8 +191,8 @@ export default function GlobalScreen() {
   }
 
   async function restaurer() {
+    suspendreVerrouillage(true);
     try {
-      suspendreVerrouillage();
       const result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
       if (result.canceled || !result.assets || result.assets.length === 0) return;
       const fileUri = result.assets[0].uri;
@@ -224,6 +224,8 @@ export default function GlobalScreen() {
       );
     } catch (e) {
       Alert.alert('Erreur', 'Impossible de lire le fichier de sauvegarde.');
+    } finally {
+      suspendreVerrouillage(false);
     }
   }
 
