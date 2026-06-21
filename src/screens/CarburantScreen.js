@@ -258,6 +258,7 @@ export default function CarburantScreen() {
   }
 
   async function openCamera() {
+    suspendreVerrouillage(true);
     try {
       const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
       if (!result.canceled) processPhoto(result.assets[0]);
@@ -267,6 +268,7 @@ export default function CarburantScreen() {
   }
 
   async function openGallery() {
+    suspendreVerrouillage(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
       if (!result.canceled) processPhoto(result.assets[0]);
